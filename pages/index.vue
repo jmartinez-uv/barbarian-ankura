@@ -62,7 +62,7 @@
 
         //send data to algolia and create records 
         const indexedContent = algoliaIndex.saveObjects(profile,true);
-        console.log('Indexed Content:', indexedContent);
+        //console.log('Indexed Content:', indexedContent);
 
         // return data that should be available
         // in the template

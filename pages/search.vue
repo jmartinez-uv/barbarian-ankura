@@ -1,20 +1,28 @@
 <template>
   <ais-instant-search :search-client="searchClient" index-name="test_profile">
-    <ais-search-box />
+    <ais-panel>
+      <div class="ais-Panel-header">Profile</div>
+    </ais-panel>
+    <ais-search-box placeholder="Search" autofocus />
+
     <ais-stats />
-    <ais-refinement-list attribute="brand" />
+
+    <ais-refinement-list attribute="name" />
+
     <ais-hits>
       <template slot="item" slot-scope="{ item }">
-        <p >
+        <p>
           <ais-highlight attribute="name" :hit="item" />
         </p>
         <p>
-          <ais-highlight attribute="brand" :hit="item" />
+          <ais-snippet attribute="exp" :hit="item" />
         </p>
       </template>
     </ais-hits>
+
     <ais-pagination />
   </ais-instant-search>
+
 </template>
 
 
@@ -27,6 +35,7 @@ import {
   AisSearchBox,
   AisStats,
   AisPagination,
+  AisSnippet,
   createServerRootMixin,
 } from 'vue-instantsearch';
 import algoliasearch from 'algoliasearch/lite';
@@ -44,6 +53,7 @@ export default {
     AisHighlight,
     AisSearchBox,
     AisStats,
+    AisSnippet,
     AisPagination,
   },
   data() {
