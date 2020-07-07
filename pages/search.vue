@@ -1,8 +1,6 @@
 <template>
   <ais-instant-search :search-client="searchClient" index-name="test_profile">
-    <ais-panel>
-      <div class="ais-Panel-header">Profile</div>
-    </ais-panel>
+
     <ais-search-box placeholder="Search" autofocus />
 
     <ais-stats />
@@ -12,11 +10,21 @@
     <ais-hits>
       <template slot="item" slot-scope="{ item }">
         <p>
-          <ais-highlight attribute="name" :hit="item" />
+          <ais-highlight attribute="name" :hit="item" />&nbsp;
         </p>
+        <nuxt-link :to="item.name">X</nuxt-link>
         <p>
           <ais-snippet attribute="exp" :hit="item" />
         </p>
+       <!--  <p>
+          <ais-snippet attribute="newsEvents" :hit="item" />
+        </p>
+        <p>
+          <ais-snippet attribute="honorsAwards" :hit="item" />
+        </p>
+        <p>
+          <ais-snippet attribute="insightInnovations" :hit="item" />
+        </p> -->
       </template>
     </ais-hits>
 

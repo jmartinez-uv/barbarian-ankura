@@ -1,5 +1,6 @@
 
 const config = require('./.contentful.json')
+const client = require('./plugins/contentful')
 
 export default {
   /*
@@ -71,5 +72,17 @@ export default {
   */
   build: {
     transpile: ['vue-instantsearch', 'instantsearch.js/es'],
-  }
+  },
+  generate: {
+    routes () {
+      return client.getEntries({ content_type: 'profile' }).then(entries => {
+        return entries.items.map(entry => {
+          return {
+            route: entry.fields.name,
+            payload: entry
+          }
+        })
+      })
+    }
+  },
 }
