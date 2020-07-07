@@ -50,7 +50,7 @@
 
        ]).then(([entries, posts]) => {
 
-         //create the jason data to be sent
+         //create the json data to be sent
         const profile = entries.items.map(post => ({
           name: post.fields.name,
           exp: removeMd(documentToHtmlString(post.fields.ex)),

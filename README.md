@@ -30,19 +30,18 @@ npm install remove-markdown
 
 ## Contentful + NuxtJs
 
-setting up the content model using contentful dashboard
+1. setting up the content model using contentful dashboard
+* create space  
+* create content model type and add fields
+* Add entry to content
 
-create space home
-create content model type and add fields
-Add entry to content
-
-* Login to contentful with command
+2. Login to contentful with command
 
 ```
 $ contentful login
 ```
 
-* Install contentful plugin
+3. Install contentful plugin
 
 create a new file in the plugin directory called contentful.js to create an SDK client with pre-defined environment variables
 
@@ -65,7 +64,7 @@ module.exports = {
 }
 ```
 
-* Define the environment variables
+4. Define the environment variables
 
 create a file on root directory called .contentful.json and use the contentful configuration variables from plugin
 
@@ -77,7 +76,7 @@ create a file on root directory called .contentful.json and use the contentful c
   "CTF_CDA_ACCESS_TOKEN": "<YOUR_ACCESS_TOKEN>"
 }
 ```
-* In the nuxt.config.js you can then require the config file and make it available in the plugins file via the env property.
+5. In the nuxt.config.js you can then require the config file and make it available in the plugins file via the env property.
 
 ```
 const config = require('./.contentful.json')
@@ -92,7 +91,7 @@ env: {
 ...
 ```
 
-* Fetch data and render page
+6. Fetch data and render page
 
 ```
 <template>
@@ -139,9 +138,214 @@ env: {
 </script>
 ```
 
-
-...
-
 ## Contentful + Algolia
+
+Process to add records to Algolia from contentful using Nuxt.js framework ( it can be add manually on Algolia dashboard)
+
+1. install dependencies to work with Algolia.
+```
+npm install algoliasearch
+```
+2. Initialized Algolia index
+
+```
+const algoliaIndex = algoliaClient.initIndex(<YOUR_INDEX>);
+```
+
+
+3. we need to get the entries with asyncData, then create a json within contentful's fields, to export Algolia API.
+
+```
+...
+        client.getEntries({
+          'content_type': env.CTF_BLOG_POST_TYPE_ID,
+          order: '-sys.createdAt'
+        }) 
+      ]).then(([entries, posts]) => {
+
+      //create the json data to be sent
+        const profile = entries.items.map(post => ({
+          name: post.fields.name,
+          exp: removeMd(documentToHtmlString(post.fields.ex)),
+          honorsAwards: removeMd(documentToHtmlString(post.fields.honorsAwards)),
+          newsEvents: removeMd(documentToHtmlString(post.fields.newsEvents)),
+          insightInnovations: removeMd(documentToHtmlString(post.fields.insightInnovations)),
+          objectID: post.sys.id
+        })); 
+...
+```
+
+we use two dependencies more, specially for text format
+
+rich-text-html-renderer
+Render text format from contentful's rich-text 
+
+remove-markdown
+Render text without special format contentful mark (kind of json format)
+
+4. Send data to Algolia 
+
+```
+const indexedContent = algoliaIndex.saveObjects(profile,true);
+```
+The records loaded will be added to Algolia index
+
+
+## Performance
+
+Search from algolia index and show object information.
+
+1. Install instantsearch for nuxt framework
+
+```
+npm install vue-instantsearch
+```
+
+2. Instantsearch use modules and it needs to be executed, add the following configuration to nuxt.config.js
+
+```
+module.exports = {
+  build: {
+    transpile: ['vue-instantsearch', 'instantsearch.js/es'],
+  },
+};
+```
+3. we specify what widgets used from vue-instantsearch library.
+
+```
+<template>
+  <ais-instant-search :search-client="searchClient" index-name="instant_search">
+    <ais-search-box />
+    <ais-stats />
+    <ais-refinement-list attribute="brand" />
+    <ais-hits>
+      <template slot="item" slot-scope="{ item }">
+        <p>
+          <ais-highlight attribute="name" :hit="item" />
+        </p>
+        <p>
+          <ais-highlight attribute="brand" :hit="item" />
+        </p>
+      </template>
+    </ais-hits>
+    <ais-pagination />
+  </ais-instant-search>
+</template>
+```
+
+```
+import {
+  AisInstantSearch,
+  AisRefinementList,
+  AisHits,
+  AisHighlight,
+  AisSearchBox,
+  AisStats,
+  AisPagination,
+  createServerRootMixin,
+} from 'vue-instantsearch';
+```
+
+4. Called data from algolia
+
+```
+export default {
+  ...
+data() {
+    return {
+      searchClient,
+    };
+  },
+...
+};
+```
+
+5. Configure Search attributes on Algolia Dashboard
+
+* Add a searchable attribute
+Algolia - index - <INDEX_NAME> - configuration - Searchable attributes
+* Add custom ranking attribute and sort-by attribute
+Algolia - index - <INDEX_NAME> - configuration - Ranking and Sorting
+* Optional, Pagination and display. Add a highlight tag or attributes to snippet (only show certain number of words on search results).
+
+6. Add link to result page with nuxt-link tag 
+
+To use a variable in other template, we create a payload on nuxt.config.js 
+
+```
+generate: {
+    routes () {
+      return client.getEntries({ content_type: 'profile' }).then(entries => {
+        return entries.items.map(entry => {
+          return {
+            route: entry.fields.name,
+            payload: entry
+          }
+        })
+      })
+    }
+  },
+```
+Then choose the value to use on link tag(nuxt-link)
+
+```
+<ais-hits>
+      <template slot="item" slot-scope="{ item }">
+        <p>
+          <ais-highlight attribute="name" :hit="item" />&nbsp;
+        </p>
+
+        <nuxt-link :to="item.name">X</nuxt-link>
+        
+        <p>
+          <ais-snippet attribute="exp" :hit="item" />
+        </p>
+      </template>
+    </ais-hits>
+  ```
+
+6. On result template access to payload 
+
+```
+export default {
+asyncData({ params, error, payload }) {
+    if (payload) return { post: payload };
+    return client
+      .getEntries({
+        content_type: 'profile',
+        'fields.name': params.name
+...
+```
+
+7. Create a Template 
+
+```
+<template>
+  <section class="section">
+    <div class="container">
+      <div class="columns">
+        <div class="column is-offset-2 is-8">
+          <p class="subtitle is-6">
+            <nuxt-link to="/search">Back to Blog home</nuxt-link>
+          </p>
+          <h1 class="title is-2">
+            {{ post.fields.name }}
+          </h1>
+           <hr>
+          <div v-html="experience"></div>
+          <hr>
+          <div v-html="richTextHtml"></div>
+          <hr>
+          <div v-html="newEvents"></div>
+          <hr>
+          <div v-html="insightsInnovations"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</template>
+```
+
+
 
 ...
