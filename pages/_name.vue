@@ -24,21 +24,26 @@
 </template>
 
 <script>
+//dependencies
   import { documentToHtmlString } from '@contentful/rich-text-html-renderer';
   import {createClient} from '~/plugins/contentful.js'
   import removeMd from 'remove-markdown';
 
+//create plugin client
     const client = createClient();
 
 export default {
+  //payload data from search
   asyncData({ params, error, payload }) {
     if (payload) return { post: payload };
+    //get entries
     return client
       .getEntries({
         content_type: 'profile',
         'fields.name': params.name
       })
       .then(entries => {
+        //return values
         return { 
           post: entries.items[0],
           experience: documentToHtmlString(entries.items[0].fields.ex),
@@ -50,6 +55,7 @@ export default {
       .catch(e => console.log(e));
   },
   head() {
+    // name value to html title
     return {
       title: this.post.fields.name,
     };

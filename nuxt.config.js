@@ -49,6 +49,7 @@ export default {
   */
   buildModules: [
   ],
+  //get environment or api keys
   env: {
     ALGOLIA_APP_ID: config.ALGOLIA_APP_ID,
     ALGOLIA_ADMIN_KEY: config.ALGOLIA_ADMIN_KEY,
@@ -73,6 +74,7 @@ export default {
   build: {
     transpile: ['vue-instantsearch', 'instantsearch.js/es'],
   },
+  //generate payload to send page result
   generate: {
     routes () {
       return client.getEntries({ content_type: 'profile' }).then(entries => {

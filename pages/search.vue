@@ -1,4 +1,5 @@
 <template>
+
   <ais-instant-search :search-client="searchClient" index-name="test_profile">
 
     <ais-search-box placeholder="Search" autofocus />
@@ -28,6 +29,7 @@
       </template>
     </ais-hits>
 
+      <nuxt-link to="/">Back to Blog home</nuxt-link>
     <ais-pagination />
   </ais-instant-search>
 
